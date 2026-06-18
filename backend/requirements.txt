@@ -1,0 +1,12 @@
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+sqlalchemy==2.0.30
+pydantic==2.7.1
+python-dotenv==1.0.1
+<<<<<<< HEAD
+google-generativeai==0.8.5
+=======
+google-generativeai==0.1.0
+>>>>>>> 8798f2d (fixed the backend bugs for audit log)
+httpx==0.27.0
+python-multipart==0.0.9
