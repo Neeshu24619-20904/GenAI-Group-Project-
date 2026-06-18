@@ -1,12 +1,20 @@
 import json
 import os
 import re
-from anthropic import AsyncAnthropic
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+key = os.getenv("GEMINI_API_KEY")
+
+print("KEY FOUND:", key is not None)
+print("KEY LENGTH:", len(key) if key else 0)
+print("FIRST 10 CHARS:", key[:10] if key else None)
+
+genai.configure(api_key=key)
+
+MODEL = genai.GenerativeModel("gemini-2.5-flash")
 
 HARM_CATEGORIES = [
     "hate_speech", "harassment", "spam", "misinformation",
@@ -64,24 +72,36 @@ def _parse_json_response(text: str) -> dict:
     text = re.sub(r'\s*```$', '', text)
     return json.loads(text)
 
+async def generate_json(system_prompt: str, payload: dict) -> dict:
+    prompt = f"""
+{system_prompt}
+
+INPUT:
+{json.dumps(payload, indent=2)}
+
+Return ONLY valid JSON.
+"""
+
+    response = MODEL.generate_content(prompt)
+
+    return _parse_json_response(response.text)
 
 async def classify_content(content: str) -> dict:
-    """Stage 1: Multi-category classification. Returns raw scores dict."""
     try:
-        response = await client.messages.create(
-            model="claude-3-5-haiku-20241022",
-            max_tokens=300,
-            system=CLASSIFY_SYSTEM,
-            messages=[{"role": "user", "content": json.dumps({"content": content})}]
+        scores = await generate_json(
+            CLASSIFY_SYSTEM,
+            {"content": content}
         )
-        scores = _parse_json_response(response.content[0].text)
-        # Ensure all categories present and clamped to [0, 1]
-        return {cat: max(0.0, min(1.0, float(scores.get(cat, 0.0)))) for cat in HARM_CATEGORIES}
+
+        return {
+            cat: max(0.0, min(1.0, float(scores.get(cat, 0.0))))
+            for cat in HARM_CATEGORIES
+        }
+
     except Exception as e:
         print(f"[classify_content] error: {e}")
-        # Fail safe: send to queue
-        return {cat: 0.55 for cat in HARM_CATEGORIES}  # mid-range -> will route to QUEUE
 
+        return {cat: 0.55 for cat in HARM_CATEGORIES}
 
 async def context_adjust(
     content: str,
@@ -102,12 +122,12 @@ async def context_adjust(
             "initial_scores": raw_scores
         }
         response = await client.messages.create(
-            model="claude-3-5-haiku-20241022",
+            model="claude-3-5-haiku-latest",
             max_tokens=400,
             system=CONTEXT_SYSTEM,
             messages=[{"role": "user", "content": json.dumps(payload)}]
         )
-        result = _parse_json_response(response.content[0].text)
+        result = await generate_text(CONTEXT_SYSTEM, payload)
         adj = result.get("adjusted_scores", raw_scores)
         # Clamp and ensure all categories present
         adjusted = {cat: max(0.0, min(1.0, float(adj.get(cat, raw_scores.get(cat, 0.0))))) for cat in HARM_CATEGORIES}
@@ -126,12 +146,12 @@ async def explain_decision(content: str, triggered_categories: dict) -> dict:
             "triggered_categories": triggered_categories
         }
         response = await client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+            model="claude-3-5-haiku-latest",
             max_tokens=400,
             system=EXPLAIN_SYSTEM,
             messages=[{"role": "user", "content": json.dumps(payload)}]
         )
-        result = _parse_json_response(response.content[0].text)
+        result = await generate_text(EXPLAIN_SYSTEM, payload)
         return {
             "offending_segment": result.get("offending_segment", ""),
             "primary_category": result.get("primary_category", ""),
