@@ -20,11 +20,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-<<<<<<< ours
       { title: "Moderation Playground - AI Content Moderation" },
-=======
-      { title: "Moderation Playground — AI Content Moderation" },
->>>>>>> theirs
       {
         name: "description",
         content:
@@ -84,7 +80,6 @@ function Playground() {
       result.action?.toUpperCase() === "AUTO_REJECT");
 
   return (
-<<<<<<< ours
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 lg:py-10">
       <div className="mb-8 overflow-hidden rounded-2xl border border-white/70 bg-white/80 p-6 shadow-sm shadow-slate-200/80 backdrop-blur md:p-7">
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
@@ -239,157 +234,19 @@ function Playground() {
             </div>
           ) : (
             <div className="space-y-6 rounded-2xl border border-white/70 bg-white p-5 shadow-sm shadow-slate-200/70">
-=======
-    <div className="mx-auto max-w-7xl px-4 py-8 md:px-8">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* LEFT — Input */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Content Moderation Playground
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Submit content to the AI pipeline and inspect the decision.
-          </p>
-
-          <div className="mt-6 space-y-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Content
-              </label>
-              <textarea
-                rows={6}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Enter content to moderate..."
-                className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Platform
-                </label>
-                <select
-                  value={platformId}
-                  onChange={(e) => setPlatformId(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                >
-                  {platforms.length === 0 && (
-                    <option value="">No platforms</option>
-                  )}
-                  {platforms.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  User ID
-                </label>
-                <input
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
-                  placeholder="anonymous"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                />
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-gray-200">
-              <button
-                type="button"
-                onClick={() => setShowContext((s) => !s)}
-                className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-gray-700"
-              >
-                <span>Context (optional)</span>
-                {showContext ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </button>
-              {showContext && (
-                <div className="grid grid-cols-1 gap-4 border-t border-gray-100 p-3 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                      Prior Violations
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      value={priorViolations}
-                      onChange={(e) =>
-                        setPriorViolations(Number(e.target.value) || 0)
-                      }
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                      Thread ID
-                    </label>
-                    <input
-                      value={threadId}
-                      onChange={(e) => setThreadId(e.target.value)}
-                      placeholder="optional"
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={run}
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-60"
-            >
-              {loading ? (
-                <>
-                  <InlineSpinner /> Running…
-                </>
-              ) : (
-                <>
-                  <Play className="h-4 w-4" /> Run Moderation
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* RIGHT — Results */}
-        <div>
-          {!result ? (
-            <div className="flex h-full min-h-[300px] items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center text-sm text-gray-400">
-              Run moderation to see results here.
-            </div>
-          ) : (
-            <div className="space-y-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
->>>>>>> theirs
               <div>
                 <DecisionBadge action={result.action} large />
               </div>
 
               <section>
-<<<<<<< ours
                 <h3 className="mb-2 text-sm font-semibold text-slate-950">
-=======
-                <h3 className="mb-2 text-sm font-semibold text-gray-900">
->>>>>>> theirs
                   Category Scores
                 </h3>
                 <CategoryScoreChart scores={result.adjusted_scores} />
               </section>
 
               <section>
-<<<<<<< ours
                 <h3 className="mb-2 text-sm font-semibold text-slate-950">
-=======
-                <h3 className="mb-2 text-sm font-semibold text-gray-900">
->>>>>>> theirs
                   Raw vs Adjusted
                 </h3>
                 <ScoreComparisonTable
@@ -400,17 +257,10 @@ function Playground() {
 
               {result.context_notes && (
                 <section>
-<<<<<<< ours
                   <h3 className="mb-1 text-sm font-semibold text-slate-950">
                     Context Notes
                   </h3>
                   <p className="text-sm italic text-slate-500">
-=======
-                  <h3 className="mb-1 text-sm font-semibold text-gray-900">
-                    Context Notes
-                  </h3>
-                  <p className="text-sm italic text-gray-500">
->>>>>>> theirs
                     {result.context_notes}
                   </p>
                 </section>
@@ -418,11 +268,7 @@ function Playground() {
 
               {showExplanation && (
                 <section>
-<<<<<<< ours
                   <h3 className="mb-2 text-sm font-semibold text-slate-950">
-=======
-                  <h3 className="mb-2 text-sm font-semibold text-gray-900">
->>>>>>> theirs
                     Explanation
                   </h3>
                   <ExplanationCard
@@ -436,15 +282,9 @@ function Playground() {
                 <Link
                   to="/decisions/$id"
                   params={{ id: result.decision_id }}
-<<<<<<< ours
                   className="inline-flex text-sm font-semibold text-cyan-700 hover:text-cyan-800"
                 >
                   View Full Decision
-=======
-                  className="inline-flex text-sm font-medium text-indigo-600 hover:text-indigo-700"
-                >
-                  View Full Decision →
->>>>>>> theirs
                 </Link>
               )}
             </div>
