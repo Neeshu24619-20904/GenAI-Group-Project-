@@ -179,6 +179,14 @@ def get_queue(
     return queue_helpers.list_queue(db, platform_id=platform_id, status=status, page=page, limit=limit)
 
 
+@app.get("/api/queue/{item_id}", response_model=schemas.QueueItemOut)
+def get_queue_item(item_id: str, db: Session = Depends(get_db)):
+    item = queue_helpers.get_queue_item(db, item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Queue item not found")
+    return item
+
+
 @app.post("/api/queue/{item_id}/resolve")
 def resolve_queue(
     item_id: str,

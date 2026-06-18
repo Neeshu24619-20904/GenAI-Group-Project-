@@ -25,36 +25,46 @@ def list_queue(
     total = query.count()
     items_raw = query.order_by(ReviewQueue.created_at.desc()).offset((page - 1) * limit).limit(limit).all()
 
-    items = []
-    for qi in items_raw:
-        decision = qi.decision
-        submission = decision.submission
-        platform = db.query(Platform).filter(Platform.id == submission.platform_id).first()
-        adj = decision.adjusted_scores or {}
-        enabled = platform.enabled_categories if platform else list(adj.keys())
-        filtered = {k: v for k, v in adj.items() if k in enabled}
-        top_cat = max(filtered, key=filtered.get) if filtered else None
-        top_score = filtered.get(top_cat, 0.0) if top_cat else 0.0
-
-        exp = decision.explanation or {}
-        items.append(QueueItemOut(
-            id=qi.id,
-            decision_id=decision.id,
-            content=submission.content,
-            content_preview=submission.content[:120] + ("..." if len(submission.content) > 120 else ""),
-            platform_id=submission.platform_id,
-            platform_name=platform.name if platform else submission.platform_id,
-            top_category=top_cat,
-            top_score=round(top_score, 3),
-            action=decision.action,
-            adjusted_scores=adj,
-            explanation=ExplanationOut(**exp),
-            status=qi.status,
-            assigned_to=qi.assigned_to,
-            created_at=qi.created_at,
-        ))
+    items = [_to_queue_item(db, qi) for qi in items_raw]
 
     return QueueListResponse(items=items, total=total, page=page, limit=limit)
+
+
+
+def _to_queue_item(db: Session, qi: ReviewQueue) -> QueueItemOut:
+    decision = qi.decision
+    submission = decision.submission
+    platform = db.query(Platform).filter(Platform.id == submission.platform_id).first()
+    adj = decision.adjusted_scores or {}
+    enabled = platform.enabled_categories if platform else list(adj.keys())
+    filtered = {k: v for k, v in adj.items() if k in enabled}
+    top_cat = max(filtered, key=filtered.get) if filtered else None
+    top_score = filtered.get(top_cat, 0.0) if top_cat else 0.0
+    exp = decision.explanation or {}
+    return QueueItemOut(
+        id=qi.id,
+        decision_id=decision.id,
+        content=submission.content,
+        content_preview=submission.content[:120] + ("..." if len(submission.content) > 120 else ""),
+        platform_id=submission.platform_id,
+        platform_name=platform.name if platform else submission.platform_id,
+        top_category=top_cat,
+        top_score=round(top_score, 3),
+        action=decision.action,
+        adjusted_scores=adj,
+        explanation=ExplanationOut(**exp),
+        status=qi.status,
+        assigned_to=qi.assigned_to,
+        created_at=qi.created_at,
+    )
+
+
+
+def get_queue_item(db: Session, item_id: str) -> QueueItemOut | None:
+    qi = db.query(ReviewQueue).filter(ReviewQueue.id == item_id).first()
+    if not qi:
+        return None
+    return _to_queue_item(db, qi)
 
 
 def resolve_queue_item(

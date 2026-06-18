@@ -116,6 +116,9 @@ export const getQueue = (params: {
       } as QueueResponse;
     });
 
+export const getQueueItem = (id: string) =>
+ api.get<QueueItem>(`/api/queue/${id}`).then((r) => r.data);
+
 export const resolveQueueItem = (
   id: string,
   body: { action: string; moderator_id: string; notes: string },
