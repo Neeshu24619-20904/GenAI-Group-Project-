@@ -85,7 +85,7 @@ Each platform can configure:
 
 ---
 
-## Technology Stack
+# Technology Stack
 
 ### Backend
 
