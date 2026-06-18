@@ -1,6 +1,5 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from models import ReviewQueue, Decision, ContentSubmission, Platform, AuditLog
 from schemas import QueueItemOut, QueueListResponse, ExplanationOut
 from router_engine import is_uniform_fallback_scores, top_category, lowest_review_threshold
@@ -25,44 +24,11 @@ def list_queue(
 
     items_raw = query.order_by(ReviewQueue.created_at.desc()).all()
 
-<<<<<<< HEAD
-    items = [_to_queue_item(db, qi) for qi in items_raw]
-=======
     all_items = []
     for qi in items_raw:
-        decision = qi.decision
-        submission = decision.submission
-        platform = db.query(Platform).filter(Platform.id == submission.platform_id).first()
-        adj = decision.adjusted_scores or {}
-        if is_uniform_fallback_scores(adj):
-            continue
-
-        top_cat, top_score = top_category(
-            adj,
-            platform,
-            min_score=lowest_review_threshold(platform) if platform else 0.50,
-        )
-
-        exp = decision.explanation or {}
-        all_items.append(QueueItemOut(
-            id=qi.id,
-            decision_id=decision.id,
-            content=submission.content,
-            content_preview=submission.content[:120] + ("..." if len(submission.content) > 120 else ""),
-            platform_id=submission.platform_id,
-            platform_name=platform.name if platform else submission.platform_id,
-            top_category=top_cat,
-            top_score=round(top_score, 3),
-            action=decision.action,
-            adjusted_scores=adj,
-            explanation=ExplanationOut(**exp),
-            status=qi.status,
-            assigned_to=qi.assigned_to,
-            moderator_action=qi.moderator_action,
-            notes=qi.moderator_notes,
-            created_at=qi.created_at,
-        ))
->>>>>>> 8798f2d (fixed the backend bugs for audit log)
+        item = _to_queue_item(db, qi)
+        if item:
+            all_items.append(item)
 
     total = len(all_items)
     items = all_items[(page - 1) * limit:page * limit]
@@ -70,15 +36,19 @@ def list_queue(
 
 
 
-def _to_queue_item(db: Session, qi: ReviewQueue) -> QueueItemOut:
+def _to_queue_item(db: Session, qi: ReviewQueue) -> QueueItemOut | None:
     decision = qi.decision
     submission = decision.submission
     platform = db.query(Platform).filter(Platform.id == submission.platform_id).first()
     adj = decision.adjusted_scores or {}
-    enabled = platform.enabled_categories if platform else list(adj.keys())
-    filtered = {k: v for k, v in adj.items() if k in enabled}
-    top_cat = max(filtered, key=filtered.get) if filtered else None
-    top_score = filtered.get(top_cat, 0.0) if top_cat else 0.0
+    if is_uniform_fallback_scores(adj):
+        return None
+
+    top_cat, top_score = top_category(
+        adj,
+        platform,
+        min_score=lowest_review_threshold(platform) if platform else 0.50,
+    )
     exp = decision.explanation or {}
     return QueueItemOut(
         id=qi.id,
@@ -94,6 +64,8 @@ def _to_queue_item(db: Session, qi: ReviewQueue) -> QueueItemOut:
         explanation=ExplanationOut(**exp),
         status=qi.status,
         assigned_to=qi.assigned_to,
+        moderator_action=qi.moderator_action,
+        notes=qi.moderator_notes,
         created_at=qi.created_at,
     )
 

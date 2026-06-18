@@ -327,14 +327,6 @@ async def context_adjust(
             "user_context": user_context,
             "initial_scores": raw_scores
         }
-<<<<<<< HEAD
-        result = await generate_json(CONTEXT_SYSTEM, payload)
-        adj = result.get("adjusted_scores", raw_scores)
-        # Clamp and ensure all categories present
-        adjusted = {cat: max(0.0, min(1.0, float(adj.get(cat, raw_scores.get(cat, 0.0))))) for cat in HARM_CATEGORIES}
-        notes = result.get("context_notes", "")
-        return {"adjusted_scores": adjusted, "context_notes": notes}
-=======
 
         result = await generate_json(CONTEXT_SYSTEM, payload)
 
@@ -347,7 +339,6 @@ async def context_adjust(
             "context_notes": result.get("context_notes", "")
         }
 
->>>>>>> 8798f2d (fixed the backend bugs for audit log)
     except Exception as e:
         _log_gemini_exception("context_adjust", e)
         raise
@@ -363,13 +354,9 @@ async def explain_decision(
             "content": content,
             "triggered_categories": triggered_categories
         }
-<<<<<<< HEAD
-        result = await generate_json(EXPLAIN_SYSTEM, payload)
-=======
 
         result = await generate_json(EXPLAIN_SYSTEM, payload)
 
->>>>>>> 8798f2d (fixed the backend bugs for audit log)
         return {
             "offending_segment": result.get("offending_segment", ""),
             "primary_category": result.get("primary_category", ""),
