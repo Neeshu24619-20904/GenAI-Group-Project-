@@ -4,6 +4,7 @@ import { ClipboardList, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   getPlatforms,
   getQueue,
+  getQueueItem,
   resolveQueueItem,
   apiErrorMessage,
   type Platform,
@@ -51,14 +52,20 @@ export function ReviewSlideOver({
   const [moderatorId, setModeratorId] = useState("");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState<"APPROVE" | "REJECT" | null>(null);
+  const [liveItem, setLiveItem] = useState<QueueItem | null>(null);
 
   useEffect(() => {
-    if (open) {
-      setModeratorId("");
-      setNotes("");
-    }
+    if (!open || !item) return;
+    setModeratorId("");
+    setNotes("");
+    setLiveItem(item);
+    getQueueItem(item.id)
+      .then((d) => setLiveItem(d))
+      .catch((e) => toast.error(apiErrorMessage(e)));
   }, [open, item?.id]);
 
+  const view = liveItem ?? item;
+  
   async function resolve(action: "APPROVE" | "REJECT") {
     if (!item) return;
     if (!moderatorId.trim()) {
@@ -87,7 +94,7 @@ export function ReviewSlideOver({
               Content
             </p>
             <div className="whitespace-pre-wrap rounded-lg bg-gray-100 p-3 text-sm text-gray-800">
-              {item.content || item.content_preview || "—"}
+              {view.content || view.content_preview || "—"}
             </div>
           </div>
 
@@ -95,34 +102,34 @@ export function ReviewSlideOver({
             <div>
               <p className="text-xs text-gray-500">Platform</p>
               <p className="font-medium text-gray-800">
-                {item.platform_name || item.platform_id}
+                {view.platform_name || view.platform_id}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-500">User ID</p>
               <p className="font-medium text-gray-800">
-                {item.user_id || item.assigned_to || "anonymous"}
+                {view.user_id || view.assigned_to || "anonymous"}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-500">Submitted</p>
               <p className="font-medium text-gray-800">
-                {relativeTime(item.created_at)}
+                {relativeTime(view.created_at)}
               </p>
             </div>
           </div>
 
           <section>
             <h3 className="mb-2 text-sm font-semibold text-gray-900">AI Scores</h3>
-            <CategoryScoreChart scores={item.adjusted_scores} />
+            <CategoryScoreChart scores={view.adjusted_scores} />
           </section>
 
-          {item.explanation && (
+          {view.explanation && (
             <section>
               <h3 className="mb-2 text-sm font-semibold text-gray-900">
                 AI Explanation
               </h3>
-              <ExplanationCard explanation={item.explanation} action={item.action} />
+              <ExplanationCard explanation={view.explanation} action={view.action} />
             </section>
           )}
 
