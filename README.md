@@ -1,149 +1,45 @@
-# AI-Powered Content Moderation Pipeline
+# 🛡️ AI-Powered Content Moderation Pipeline
 
-A full-stack AI-powered content moderation system for detecting harmful, unsafe, or policy-violating user-generated content.
+> **The internet is messy. Moderating it shouldn't be.** > A full-stack, AI-powered content moderation system built to detect harmful, unsafe, or policy-violating user-generated content with nuance and transparency.
 
-The pipeline combines AI classification, platform-specific rules, confidence-based routing, explainable moderation decisions, and human review workflows to help platforms moderate content more consistently and transparently.
-
----
-
-## Overview
-
-This project is designed to moderate user-generated content across multiple safety categories. Instead of using one simple “safe” or “unsafe” label, the system analyzes content across several harm types and returns individual confidence scores for each category.
-
-Based on platform policy settings, the content can be:
-
-- Automatically approved
-- Sent to a human moderator for review
-- Automatically rejected
-
-The goal is to create a moderation workflow that is scalable, configurable, explainable, and practical for real-world use.
+This pipeline isn't just a simple "safe/unsafe" toggle. It combines multi-category AI classification, highly configurable platform-specific rules, confidence-based routing, and a human-in-the-loop review workflow. The result? A moderation engine that is scalable, explainable, and practical for real-world communities.
 
 ---
 
-## Key Features
+## ✨ Key Features
 
-### Multi-Category Classification
+Instead of relying on rigid keyword filters, our system analyzes content across several harm types, returning individual confidence scores for each category.
 
-The system can detect and score multiple moderation categories independently:
+* **🧠 Multi-Category Classification:** Independently detects and scores Hate Speech, Harassment, Spam, Misinformation, Graphic Violence, Adult Content, and Self-Harm.
+* **🕵️ Context-Aware Moderation:** We don't just look at the message in a vacuum. The pipeline evaluates the current content, conversation thread context, user history, and platform-specific policies.
+* **🚦 Confidence-Based Routing:** * 🟢 **Auto-Approve:** Confidently safe content passes right through.
+* 🟡 **Human Review:** Uncertain, borderline, or highly contextual content is routed to a human moderator.
+* 🔴 **Auto-Reject:** High-confidence policy violations are instantly blocked.
 
-- Hate Speech
-- Harassment
-- Spam
-- Misinformation
-- Graphic Violence
-- Adult Content
-- Self-Harm
 
-Each category returns its own confidence score, allowing more flexible moderation decisions.
-
----
-
-### Context-Aware Moderation
-
-Moderation decisions can take more than just the submitted message into account.
-
-The system can evaluate:
-
-- The current content
-- Conversation thread context
-- User history
-- Platform-specific policies
-- Enabled or disabled moderation categories
-
-This makes the moderation result more accurate because the same message may require different actions depending on context.
+* **💡 Explainable AI Decisions:** No "black box" decisions. Every moderation result includes the detected category, confidence score, triggering segment, and clear AI-generated reasoning.
+* **🧑‍⚖️ Human Review Queue:** A dedicated workspace for moderators to view flagged content, read the AI's reasoning, check scores, and make the final call (with the ability to leave audit notes).
+* **⚙️ Platform Policy Configuration:** Different platforms have different risk tolerances. Admins can configure enabled categories, custom thresholds, and routing behaviors to fit their unique community standards.
 
 ---
 
-### Confidence-Based Routing
+## 🛠️ Tech Stack
 
-The pipeline supports three main moderation outcomes.
+We built this pipeline using modern, scalable technologies to ensure it can handle high volumes of content seamlessly.
 
-#### Auto Approve
-
-Content that is confidently safe is approved automatically.
-
-#### Human Review
-
-Content that is uncertain, borderline, or context-sensitive is routed to a moderator.
-
-#### Auto Reject
-
-Content with high-confidence policy violations is rejected automatically.
+| Area | Technologies Used |
+| --- | --- |
+| **Backend** | FastAPI, PostgreSQL, SQLAlchemy 2.0, Alembic, Redis, Pydantic v2 |
+| **AI Engine** | Google Gemini API |
+| **Frontend** | Next.js, TypeScript, Tailwind CSS, ShadCN UI |
 
 ---
 
-### Explainable AI Decisions
+## 🔄 How It Works
 
-Every moderation result includes clear reasoning behind the decision.
+Our architecture is designed to evaluate content, check it against custom platform rules, and route it efficiently.
 
-A decision can include:
-
-- Detected harm category
-- Confidence score
-- Triggering content segment
-- AI-generated reasoning
-- Final moderation action
-
-This helps moderators understand why content was flagged and makes the moderation process more transparent.
-
----
-
-### Human Review Queue
-
-Moderators can review content that requires manual judgment.
-
-The review workflow supports:
-
-- Viewing flagged content
-- Reading AI reasoning
-- Checking category confidence scores
-- Approving or rejecting content
-- Overriding automated decisions
-- Adding moderator notes
-
----
-
-### Platform Policy Configuration
-
-Different platforms can use different moderation rules.
-
-Each platform can configure:
-
-- Enabled moderation categories
-- Category-specific thresholds
-- Auto-approval rules
-- Auto-rejection rules
-- Human review routing behavior
-
-This allows the same moderation engine to support different community standards and risk levels.
-
----
-
-## Tech Stack
-
-### Backend
-
-- FastAPI
-- PostgreSQL
-- SQLAlchemy 2.0
-- Alembic
-- Redis
-- Pydantic v2
-
-### AI
-
-- Gemini API
-
-### Frontend
-
-- Next.js
-- TypeScript
-- Tailwind CSS
-- ShadCN UI
-
----
-
-## How It Works
+### System Architecture
 
 ```text
 User submits content
@@ -169,12 +65,11 @@ Final action is selected
         +-------------------+-------------------+
         |                   |                   |
         v                   v                   v
- Auto Approve        Human Review        Auto Reject
+ Auto Approve         Human Review         Auto Reject
+
 ```
 
----
-
-## Moderation Decision Flow
+### Moderation Decision Flow
 
 ```text
 Submitted Content
@@ -191,20 +86,21 @@ Platform Policy Evaluation
         +---------------------------+
         |                           |
         v                           v
-Low Risk                    Possible Violation
+    Low Risk                Possible Violation
         |                           |
         v                           v
-Auto Approve              Confidence Check
+  Auto Approve              Confidence Check
                                     |
                     +---------------+---------------+
                     |                               |
                     v                               v
-              Human Review                    Auto Reject
+              Human Review                     Auto Reject
+
 ```
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
 ```text
 backend/
@@ -230,11 +126,16 @@ frontend/
 ├── public/               # Static files
 ├── package.json
 └── next.config.js
+
 ```
 
 ---
 
-## Example Moderation Request
+## 📡 API Examples
+
+Curious about what the data looks like under the hood? Here's how our system talks.
+
+### 📥 Example Request
 
 ```json
 {
@@ -254,11 +155,10 @@ frontend/
     }
   }
 }
+
 ```
 
----
-
-## Example Moderation Response
+### 📤 Example Response
 
 ```json
 {
@@ -275,92 +175,32 @@ frontend/
   "final_reasoning": "The harassment score is above the review threshold but below the auto-reject threshold.",
   "requires_human_review": true
 }
+
 ```
 
 ---
 
-## Example Platform Policy
+## 🎯 Core Moderation Categories
 
-```json
-{
-  "platform_id": "platform_001",
-  "enabled_categories": [
-    "hate_speech",
-    "harassment",
-    "spam",
-    "misinformation",
-    "graphic_violence",
-    "adult_content",
-    "self_harm"
-  ],
-  "thresholds": {
-    "hate_speech": {
-      "review": 0.55,
-      "reject": 0.85
-    },
-    "harassment": {
-      "review": 0.50,
-      "reject": 0.80
-    },
-    "spam": {
-      "review": 0.60,
-      "reject": 0.90
-    },
-    "misinformation": {
-      "review": 0.55,
-      "reject": 0.82
-    },
-    "graphic_violence": {
-      "review": 0.50,
-      "reject": 0.85
-    },
-    "adult_content": {
-      "review": 0.50,
-      "reject": 0.85
-    },
-    "self_harm": {
-      "review": 0.40,
-      "reject": 0.75
-    }
-  }
-}
-```
-
----
-
-## Human Review Workflow
-
-1. Content is submitted for moderation.
-2. AI analyzes the content and returns category scores.
-3. The decision engine applies platform-specific thresholds.
-4. Safe content is approved automatically.
-5. High-confidence violations are rejected automatically.
-6. Uncertain cases are added to the human review queue.
-7. A moderator reviews the content, AI reasoning, and confidence scores.
-8. The moderator makes the final decision and can add review notes.
-9. The final action is stored for future reference and auditability.
-
----
-
-## Core Moderation Categories
+Our AI engine evaluates content across these 7 primary vectors:
 
 | Category | Description |
-|---|---|
-| Hate Speech | Content attacking or demeaning protected groups |
-| Harassment | Insults, threats, bullying, or targeted abuse |
-| Spam | Repetitive, promotional, or low-quality unwanted content |
-| Misinformation | Potentially false or misleading claims |
-| Graphic Violence | Violent, disturbing, or graphic descriptions |
-| Adult Content | Sexual or explicit content |
-| Self-Harm | Content involving self-harm, suicide, or dangerous behavior |
+| --- | --- |
+| **Hate Speech** | Content attacking or demeaning protected groups |
+| **Harassment** | Insults, threats, bullying, or targeted abuse |
+| **Spam** | Repetitive, promotional, or low-quality unwanted content |
+| **Misinformation** | Potentially false or misleading claims |
+| **Graphic Violence** | Violent, disturbing, or graphic descriptions |
+| **Adult Content** | Sexual or explicit content |
+| **Self-Harm** | Content involving self-harm, suicide, or dangerous behavior |
 
 ---
 
-## Environment Variables
+## ⚙️ Environment Variables
 
-The project uses environment variables for configuration.
+To run this project locally, you will need to set up the following environment variables:
 
-Example backend variables:
+**Backend (`backend/.env`)**
 
 ```env
 DATABASE_URL=postgresql+psycopg://username:password@localhost:5432/moderation_db
@@ -368,75 +208,38 @@ REDIS_URL=redis://localhost:6379/0
 GEMINI_API_KEY=your_gemini_api_key
 ENVIRONMENT=development
 BACKEND_CORS_ORIGINS=http://localhost:3000
+
 ```
 
-Example frontend variable:
+**Frontend (`frontend/.env.local`)**
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
+
 ```
 
 ---
 
-## Design Goals
+## 🚀 Roadmap
 
-- **Scalable** — Supports automated moderation for large volumes of content.
-- **Configurable** — Allows platforms to define their own policy rules.
-- **Explainable** — Provides reasoning behind every AI-assisted decision.
-- **Human-in-the-loop** — Sends uncertain cases to moderators instead of relying only on automation.
-- **Context-aware** — Uses conversation and user context where available.
-- **Auditable** — Stores moderation decisions, notes, and overrides.
-- **Flexible** — Supports multiple moderation categories and policy thresholds.
+We are constantly looking to improve this pipeline. Future enhancements include:
 
----
-
-## Possible Use Cases
-
-This moderation pipeline can be adapted for:
-
-- Social media platforms
-- Community forums
-- Chat applications
-- Comment sections
-- Marketplace listings
-- User profile moderation
-- Messaging platforms
-- Content publishing tools
+* [ ] Authentication and role-based access control (RBAC)
+* [ ] Moderator analytics and health dashboard
+* [ ] Bulk moderation support
+* [ ] Webhook support for real-time external platform alerts
+* [ ] Feedback loops to continuously fine-tune AI decisions based on moderator overrides
+* [ ] Multi-LLM support (adding alternative AI providers alongside Gemini)
 
 ---
 
-## Roadmap
+## 🔒 Security & Privacy Notes
 
-Planned improvements may include:
+Content moderation inherently involves processing sensitive user-generated data. **Treat this data with care.**
 
-- Authentication and role-based access control
-- Moderator analytics dashboard
-- Bulk moderation support
-- Audit logs for policy changes
-- Feedback loops for improving AI decisions
-- Webhook support for external platforms
-- More advanced policy configuration
-- Moderator activity tracking
-- Support for additional AI providers
+* Keep all API keys and secrets in your environment variables.
+* **Never** commit `.env` files.
+* Restrict access to moderation databases and protect moderator UI routes with strong authentication.
+* Avoid logging sensitive content in plain text to your monitoring services unnecessarily.
 
 ---
-
-## Security and Privacy Notes
-
-This project may process sensitive user-generated content, so careful handling is important.
-
-Recommended practices:
-
-- Keep API keys and secrets in environment variables.
-- Do not commit `.env` files.
-- Restrict access to moderation data.
-- Protect moderator routes with authentication.
-- Store only the data needed for moderation.
-- Avoid logging sensitive content unnecessarily.
-- Review automated decisions before using them in high-risk environments.
-
----
-
-## License
-
-Add your preferred license for the project.
