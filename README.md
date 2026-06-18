@@ -1,138 +1,89 @@
 # AI-Powered Content Moderation Pipeline
 
-A full-stack AI-powered content moderation system that performs multi-category content classification, context-aware moderation, confidence-based routing, explainable decisions, human review workflows, and platform-specific policy enforcement.
+A full-stack moderation dashboard for classifying user-generated content, routing risky cases for human review, and auditing every moderation decision.
 
----
+The project includes a FastAPI backend and a React/TanStack frontend. It supports category-level scoring, platform-specific policy thresholds, explainable decisions, analytics, and a moderator review queue.
 
-## Features
+## What It Does
 
-### Multi-Category Classification
+- Classifies content across harm categories such as hate speech, harassment, spam, misinformation, graphic violence, adult content, and self-harm.
+- Applies platform policy settings to convert category scores into moderation actions.
+- Routes decisions to auto-approve, human review, or auto-reject paths.
+- Shows explanations, confidence scores, adjusted scores, and audit history.
+- Gives moderators a queue for reviewing flagged content and recording overrides.
 
-Detects:
+## Tech Stack
 
-- Hate Speech
-- Harassment
-- Spam
-- Misinformation
-- Graphic Violence
-- Adult Content
-- Self-Harm
-
-Each category returns an independent confidence score.
-
----
-
-### Context-Aware Analysis
-
-Moderation decisions consider:
-
-- Current content
-- Conversation thread
-- User history
-- Platform policies
-
-The same message can receive different moderation outcomes depending on context.
-
----
-
-### Confidence-Based Routing
-
-#### Auto Approve
-
-Safe content is approved automatically.
-
-#### Human Review
-
-Ambiguous content is routed to moderators.
-
-#### Auto Reject
-
-High-confidence violations are automatically rejected.
-
----
-
-### Explainable Decisions
-
-Every moderation decision includes:
-
-- Triggering content segment
-- Harm category
-- Confidence score
-- AI reasoning
-- Final moderation action
-
----
-
-### Human Review Queue
-
-Moderators can:
-
-- Review flagged content
-- View AI reasoning
-- Override decisions
-- Add review notes
-
----
-
-### Platform Policy Configuration
-
-Each platform can configure:
-
-- Category thresholds
-- Enabled categories
-- Routing rules
-- Moderation behavior
-
----
-
-## Technology Stack
-
-### Backend
-
+**Backend**
 - FastAPI
-- PostgreSQL
-- SQLAlchemy 2.0
-- Alembic
-- Redis
-- Pydantic v2
+- SQLAlchemy
+- SQLite local database
+- Pydantic
 
-### AI
-
-- Gemini API
-
-### Frontend
-
-- Next.js
+**Frontend**
+- React
+- TanStack Router / TanStack Start
 - TypeScript
 - Tailwind CSS
-- ShadCN UI
-
----
+- shadcn/ui components
 
 ## Project Structure
 
 ```text
-backend/
-│
-├── app/
-│   ├── api/
-│   ├── core/
-│   ├── database/
-│   ├── models/
-│   ├── repositories/
-│   ├── schemas/
-│   ├── services/
-│   └── utils/
-│
-├── alembic/
-├── seed/
-├── requirements.txt
-└── main.py
-
-frontend/
-│
-├── src/
-├── public/
-├── package.json
-└── next.config.js
+.
+├── backend/
+│   ├── main.py
+│   ├── classifier.py
+│   ├── database.py
+│   ├── models.py
+│   ├── policy.py
+│   ├── review_queue.py
+│   ├── router_engine.py
+│   ├── schemas.py
+│   ├── seed.py
+│   └── docs/
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── lib/
+│   │   └── routes/
+│   ├── package.json
+│   └── vite.config.ts
+├── moderation.db
+└── README.md
 ```
+
+## Running Locally
+
+### Backend
+
+```bash
+cd backend
+pip install -r requirements.txt
+python seed.py
+uvicorn main:app --reload
+```
+
+The API runs at `http://127.0.0.1:8000`.
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs on the Vite dev server, usually `http://localhost:5173`.
+
+## Main Screens
+
+- **Playground**: submit content and inspect AI moderation results.
+- **Review Queue**: review cases that need human judgment.
+- **Policy Config**: tune category thresholds and routing behavior.
+- **Analytics**: view moderation volume and category patterns.
+- **Audit Log**: inspect saved moderation decisions.
+
+## Notes
+
+This is a local project prototype. The checked-in `moderation.db` is useful for demo data, but production usage should move secrets, database configuration, and deployment settings into environment-specific configuration.
