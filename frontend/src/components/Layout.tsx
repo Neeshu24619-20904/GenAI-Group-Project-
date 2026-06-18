@@ -26,10 +26,10 @@ export function Layout({ children }: { children: ReactNode }) {
     exact ? pathname === to : pathname === to || pathname.startsWith(to + "/");
 
   return (
-    <div className="flex min-h-screen w-full bg-gray-50 text-gray-900">
-      <aside className="sticky top-0 flex h-screen w-16 shrink-0 flex-col bg-gray-900 text-gray-300 transition-all md:w-60">
+    <div className="flex min-h-screen w-full bg-slate-50 text-gray-900">
+      <aside className="sticky top-0 flex h-screen w-16 shrink-0 flex-col bg-slate-950 text-gray-300 shadow-xl shadow-slate-950/10 transition-all md:w-60">
         <div className="flex h-16 items-center gap-2 px-3 md:px-5">
-          <ShieldCheck className="h-7 w-7 shrink-0 text-indigo-500" />
+          <ShieldCheck className="h-7 w-7 shrink-0 text-cyan-400" />
           <span className="hidden text-sm font-bold leading-tight text-white md:block">
             Content
             <br />
@@ -47,17 +47,19 @@ export function Layout({ children }: { children: ReactNode }) {
                 title={item.label}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-indigo-600 text-white"
-                    : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                    ? "bg-white text-slate-950 shadow-sm"
+                    : "text-gray-400 hover:bg-slate-800 hover:text-white"
                 }`}
               >
-                <Icon className="h-5 w-5 shrink-0" />
+                <Icon
+                  className={`h-5 w-5 shrink-0 ${active ? "text-cyan-600" : ""}`}
+                />
                 <span className="hidden md:block">{item.label}</span>
               </Link>
             );
           })}
         </nav>
-        <div className="hidden px-5 py-4 text-xs text-gray-600 md:block">
+        <div className="hidden px-5 py-4 text-xs text-slate-500 md:block">
           AI Moderation Pipeline
         </div>
       </aside>
