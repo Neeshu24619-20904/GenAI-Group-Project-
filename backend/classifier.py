@@ -121,13 +121,7 @@ async def context_adjust(
             "user_context": user_context,
             "initial_scores": raw_scores
         }
-        response = await client.messages.create(
-            model="claude-3-5-haiku-latest",
-            max_tokens=400,
-            system=CONTEXT_SYSTEM,
-            messages=[{"role": "user", "content": json.dumps(payload)}]
-        )
-        result = await generate_text(CONTEXT_SYSTEM, payload)
+        result = await generate_json(CONTEXT_SYSTEM, payload)
         adj = result.get("adjusted_scores", raw_scores)
         # Clamp and ensure all categories present
         adjusted = {cat: max(0.0, min(1.0, float(adj.get(cat, raw_scores.get(cat, 0.0))))) for cat in HARM_CATEGORIES}
@@ -145,13 +139,7 @@ async def explain_decision(content: str, triggered_categories: dict) -> dict:
             "content": content,
             "triggered_categories": triggered_categories
         }
-        response = await client.messages.create(
-            model="claude-3-5-haiku-latest",
-            max_tokens=400,
-            system=EXPLAIN_SYSTEM,
-            messages=[{"role": "user", "content": json.dumps(payload)}]
-        )
-        result = await generate_text(EXPLAIN_SYSTEM, payload)
+        result = await generate_json(EXPLAIN_SYSTEM, payload)
         return {
             "offending_segment": result.get("offending_segment", ""),
             "primary_category": result.get("primary_category", ""),
