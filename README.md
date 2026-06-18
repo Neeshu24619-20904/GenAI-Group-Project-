@@ -196,27 +196,11 @@ Our AI engine evaluates content across these 7 primary vectors:
 
 ---
 
-## ⚙️ Environment Variables
+## 🌍 Deployment
 
-To run this project locally, you will need to set up the following environment variables:
+This project has been successfully deployed and is currently hosted on **Vercel**. 
 
-**Backend (`backend/.env`)**
-
-```env
-DATABASE_URL=postgresql+psycopg://username:password@localhost:5432/moderation_db
-REDIS_URL=redis://localhost:6379/0
-GEMINI_API_KEY=your_gemini_api_key
-ENVIRONMENT=development
-BACKEND_CORS_ORIGINS=http://localhost:3000
-
-```
-
-**Frontend (`frontend/.env.local`)**
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-
-```
+*(Note: The frontend is hosted on Vercel, ensuring fast delivery, while the API interacts with our production database and AI services.)*
 
 ---
 
