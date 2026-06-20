@@ -99,9 +99,6 @@ export interface AuditLogDetail extends AuditLogItem {
 export const getPlatforms = () =>
   api.get<Platform[]>("/api/platforms").then((r) => r.data);
 
-export const getPlatform = (id: string) =>
-  api.get<Platform>(`/api/platforms/${id}`).then((r) => r.data);
-
 export const createPlatform = (body: Partial<Platform>) =>
   api.post("/api/platforms", body).then((r) => r.data);
 
@@ -158,9 +155,6 @@ export const getQueue = (params: {
         limit: d.limit,
       } as QueueResponse;
     });
-
-export const getQueueItem = (id: string) =>
- api.get<QueueItem>(`/api/queue/${id}`).then((r) => r.data);
 
 export const resolveQueueItem = (
   id: string,
