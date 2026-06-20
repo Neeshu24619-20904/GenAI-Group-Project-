@@ -3,25 +3,24 @@ import logging
 import os
 import re
 from typing import Any
-import google.generativeai as genai
+from groq import Groq
 from dotenv import load_dotenv
 from router_engine import is_uniform_fallback_scores
 
 load_dotenv()
 
-key = os.getenv("GEMINI_API_KEY")
+key = os.getenv("GROQ_API_KEY")
 
 logger = logging.getLogger(__name__)
 
-genai.configure(api_key=key)
+if not key:
+    logger.warning(
+        "No GROQ_API_KEY found. Please set GROQ_API_KEY in your backend/.env file."
+    )
 
-MODEL = genai.GenerativeModel(
-    "gemini-2.5-flash",
-    generation_config={
-        "temperature": 0.1,
-        "response_mime_type": "application/json"
-    }
-)
+# Groq client — uses llama-3.3-70b-versatile with JSON mode
+CLIENT = Groq(api_key=key)
+GROQ_MODEL = "llama-3.3-70b-versatile"
 
 HARM_CATEGORIES = [
     "hate_speech", "harassment", "spam", "misinformation",
@@ -101,30 +100,13 @@ Return ONLY valid JSON:
 }"""
 
 
-class GeminiJSONError(RuntimeError):
+class LLMJSONError(RuntimeError):
     def __init__(self, message: str, *, raw_response: str | None = None):
         super().__init__(message)
         self.raw_response = raw_response
 
-
-def _response_text(response: Any) -> str:
-    """Extract text from Gemini response objects without assuming one SDK shape."""
-    try:
-        text = response.text
-        if text:
-            return text
-    except Exception as exc:
-        logger.warning("Gemini response.text unavailable: %s", exc)
-
-    parts: list[str] = []
-    for candidate in getattr(response, "candidates", []) or []:
-        content = getattr(candidate, "content", None)
-        for part in getattr(content, "parts", []) or []:
-            part_text = getattr(part, "text", None)
-            if part_text:
-                parts.append(part_text)
-
-    return "\n".join(parts)
+# Keep backward-compatible alias
+GeminiJSONError = LLMJSONError
 
 
 def _strip_markdown_json(text: str) -> str:
@@ -136,7 +118,7 @@ def _strip_markdown_json(text: str) -> str:
 
 
 def _parse_json_response(text: str) -> dict:
-    """Parse JSON from Gemini, including markdown fences and extra prose."""
+    """Parse JSON from LLM response, handling markdown fences and extra prose."""
     cleaned = _strip_markdown_json(text)
 
     try:
@@ -151,28 +133,31 @@ def _parse_json_response(text: str) -> dict:
             except json.JSONDecodeError:
                 continue
         else:
-            logger.exception("Malformed Gemini JSON response: %s", text)
-            raise GeminiJSONError("Gemini returned malformed JSON", raw_response=text)
+            logger.error("Malformed LLM JSON response: %s", text)
+            raise LLMJSONError("LLM returned malformed JSON", raw_response=text)
 
     if not isinstance(parsed, dict):
-        logger.error("Gemini JSON root was %s, expected object: %s", type(parsed).__name__, text)
-        raise GeminiJSONError("Gemini JSON response must be an object", raw_response=text)
+        logger.error("LLM JSON root was %s, expected object: %s", type(parsed).__name__, text)
+        raise LLMJSONError("LLM JSON response must be an object", raw_response=text)
 
     return parsed
 
 
 def _is_quota_error(exc: Exception) -> bool:
     text = str(exc).lower()
-    return any(token in text for token in ("quota", "resource_exhausted", "429", "rate limit"))
+    return any(token in text for token in ("quota", "resource_exhausted", "429", "rate limit", "rate_limit"))
 
 
-def _log_gemini_exception(stage: str, exc: Exception) -> None:
+def _log_llm_exception(stage: str, exc: Exception) -> None:
     if _is_quota_error(exc):
-        logger.exception("Gemini quota/rate-limit failure during %s: %s", stage, exc)
-    elif isinstance(exc, (json.JSONDecodeError, GeminiJSONError)):
-        logger.exception("Gemini JSON parsing failure during %s: %s", stage, exc)
+        logger.exception("Groq quota/rate-limit failure during %s: %s", stage, exc)
+    elif isinstance(exc, (json.JSONDecodeError, LLMJSONError)):
+        logger.exception("Groq JSON parsing failure during %s: %s", stage, exc)
     else:
-        logger.exception("Gemini request failure during %s: %s", stage, exc)
+        logger.exception("Groq request failure during %s: %s", stage, exc)
+
+# Backward-compatible alias used by existing callers
+_log_gemini_exception = _log_llm_exception
 
 
 def _category_key(key: str) -> str | None:
@@ -248,50 +233,48 @@ def _normalise_score_map(
     source = _top_level_numbers(_score_source(data))
     fallback = fallback or {}
     if require_scores and not source:
-        logger.error("Gemini response did not include any recognized category scores: %s", data)
-        raise GeminiJSONError("Gemini response missing recognized category scores")
+        logger.error("LLM response did not include any recognized category scores: %s", data)
+        raise LLMJSONError("LLM response missing recognized category scores")
 
     scores = {
         cat: max(0.0, min(1.0, float(source.get(cat, fallback.get(cat, 0.0)))))
         for cat in HARM_CATEGORIES
     }
     if is_uniform_fallback_scores(scores):
-        logger.error("Gemini returned invalid uniform fallback scores: %s", scores)
-        raise GeminiJSONError("Gemini returned invalid uniform fallback scores")
+        logger.error("LLM returned invalid uniform fallback scores: %s", scores)
+        raise LLMJSONError("LLM returned invalid uniform fallback scores")
     return scores
 
 
 async def generate_json(system_prompt: str, payload: dict) -> dict:
-    prompt = f"""
-{system_prompt}
+    stage = payload.get("_stage", "groq_json")
+    # Strip internal _stage key before sending to LLM
+    user_payload = {k: v for k, v in payload.items() if k != "_stage"}
 
-INPUT:
-{json.dumps(payload, indent=2)}
-"""
-
-    stage = payload.get("_stage", "gemini_json")
     try:
-        response = MODEL.generate_content(
-            prompt,
-            generation_config=genai.GenerationConfig(
-                temperature=0.1,
-                response_mime_type="application/json"
-            )
+        response = CLIENT.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": json.dumps(user_payload, indent=2)},
+            ],
+            temperature=0.1,
+            response_format={"type": "json_object"},
         )
     except Exception as exc:
-        _log_gemini_exception(stage, exc)
+        _log_llm_exception(stage, exc)
         raise
 
-    text = _response_text(response).strip()
-    logger.info("Gemini raw response for %s: %s", stage, text)
+    text = (response.choices[0].message.content or "").strip()
+    logger.info("Groq raw response for %s: %s", stage, text)
     if not text:
-        logger.error("Gemini returned an empty response for %s: %r", stage, response)
-        raise GeminiJSONError("Gemini returned an empty response", raw_response="")
+        logger.error("Groq returned an empty response for stage: %s", stage)
+        raise LLMJSONError("Groq returned an empty response", raw_response="")
 
     try:
         return _parse_json_response(text)
     except Exception as exc:
-        _log_gemini_exception(stage, exc)
+        _log_llm_exception(stage, exc)
         raise
 
 
@@ -305,7 +288,7 @@ async def classify_content(content: str) -> dict:
         return _normalise_score_map(scores, require_scores=True)
 
     except Exception as e:
-        _log_gemini_exception("classify_content", e)
+        _log_llm_exception("classify_content", e)
         raise
 
 async def context_adjust(
@@ -340,7 +323,7 @@ async def context_adjust(
         }
 
     except Exception as e:
-        _log_gemini_exception("context_adjust", e)
+        _log_llm_exception("context_adjust", e)
         raise
 
 async def explain_decision(
@@ -365,5 +348,5 @@ async def explain_decision(
         }
 
     except Exception as e:
-        _log_gemini_exception("explain_decision", e)
+        _log_llm_exception("explain_decision", e)
         raise

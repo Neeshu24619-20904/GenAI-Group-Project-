@@ -214,7 +214,7 @@ BACKEND_CORS_ORIGINS=http://localhost:3000
 **Frontend (`frontend/.env.local`)**
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=https://genai-group-project-1-yh7c.onrender.com
 
 ```
 
