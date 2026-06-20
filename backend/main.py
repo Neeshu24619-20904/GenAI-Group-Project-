@@ -30,7 +30,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://genai-group-project-1-yh7c.onrender.com"],
+    allow_origins=["https://gen-ai-group-project.vercel.app/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
