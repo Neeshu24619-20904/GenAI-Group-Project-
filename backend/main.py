@@ -49,7 +49,6 @@ def _log_startup_config() -> None:
     # CORS allow-list and confirm whether the Groq key is present.
     import logging
     logger = logging.getLogger("uvicorn")
-    logger.info("CORS allow_origins=%s", app.user_middleware[0].options.get("allow_origins"))
     logger.info(
         "GROQ_API_KEY present: %s",
         "yes" if os.getenv("GROQ_API_KEY") else "NO — /api/moderate will fail",
