@@ -32,6 +32,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://gen-ai-group-project.vercel.app",
+        "https://genai-group-project.vercel.app",
         "http://localhost:5173",
         "http://localhost:3000",
         "http://127.0.0.1:5173",
@@ -40,6 +41,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def _log_startup_config() -> None:
+    # Visible in Render logs on every boot — useful to confirm the deployed
+    # CORS allow-list and confirm whether the Groq key is present.
+    import logging
+    logger = logging.getLogger("uvicorn")
+    logger.info("CORS allow_origins=%s", app.user_middleware[0].options.get("allow_origins"))
+    logger.info(
+        "GROQ_API_KEY present: %s",
+        "yes" if os.getenv("GROQ_API_KEY") else "NO — /api/moderate will fail",
+    )
 
 
 # ── Health ────────────────────────────────────────────────────────────────────
