@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Single source of truth for the backend base URL.
-export const API_BASE = import.meta.env.VITE_API_BASE || "https://genai-group-project-1-yh7c.onrender.com";
+export const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 export const api = axios.create({
   baseURL: API_BASE,
@@ -154,7 +154,7 @@ export const getQueue = (params: {
     });
 
 export const getQueueItem = (id: string) =>
-  api.get<QueueItem>(`/api/queue/${id}`).then((r) => r.data);
+ api.get<QueueItem>(`/api/queue/${id}`).then((r) => r.data);
 
 export const resolveQueueItem = (
   id: string,
