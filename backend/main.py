@@ -53,6 +53,92 @@ def _log_startup_config() -> None:
         "GROQ_API_KEY present: %s",
         "yes" if os.getenv("GROQ_API_KEY") else "NO — /api/moderate will fail",
     )
+    _seed_default_platforms_if_empty()
+
+
+def _seed_default_platforms_if_empty() -> None:
+    """Insert the canonical demo platforms if the DB is empty.
+
+    Render's free-tier filesystem is ephemeral — every deploy wipes the SQLite
+    file, so a one-shot `python seed.py` doesn't survive. Seeding on startup
+    guarantees the dropdown is never empty on a fresh deploy. Skips silently
+    if the table already has rows so user-created platforms are preserved.
+    """
+    from database import SessionLocal
+
+    ALL_CATEGORIES = [
+        "hate_speech", "harassment", "spam", "misinformation",
+        "graphic_violence", "adult_content", "self_harm",
+    ]
+    PLATFORMS = [
+        {
+            "id": "children_platform",
+            "name": "Kids Safe App",
+            "description": "Educational platform for children aged 6-12. Very strict moderation.",
+            "enabled_categories": ALL_CATEGORIES,
+            "thresholds": {
+                "hate_speech":      {"reject": 0.40, "review": 0.20},
+                "harassment":       {"reject": 0.40, "review": 0.20},
+                "spam":             {"reject": 0.70, "review": 0.40},
+                "misinformation":   {"reject": 0.50, "review": 0.30},
+                "graphic_violence": {"reject": 0.30, "review": 0.15},
+                "adult_content":    {"reject": 0.20, "review": 0.10},
+                "self_harm":        {"reject": 0.40, "review": 0.20},
+            },
+        },
+        {
+            "id": "general_platform",
+            "name": "General Social Platform",
+            "description": "Standard social media platform for adults. Balanced moderation.",
+            "enabled_categories": ALL_CATEGORIES,
+            "thresholds": {
+                "hate_speech":      {"reject": 0.85, "review": 0.50},
+                "harassment":       {"reject": 0.85, "review": 0.50},
+                "spam":             {"reject": 0.90, "review": 0.60},
+                "misinformation":   {"reject": 0.85, "review": 0.55},
+                "graphic_violence": {"reject": 0.85, "review": 0.50},
+                "adult_content":    {"reject": 0.85, "review": 0.60},
+                "self_harm":        {"reject": 0.80, "review": 0.45},
+            },
+        },
+        {
+            "id": "adult_platform",
+            "name": "Adult Content Platform",
+            "description": "18+ platform. Adult content is permitted; focus on safety violations.",
+            "enabled_categories": [c for c in ALL_CATEGORIES if c != "adult_content"],
+            "thresholds": {
+                "hate_speech":      {"reject": 0.90, "review": 0.65},
+                "harassment":       {"reject": 0.85, "review": 0.50},
+                "spam":             {"reject": 0.90, "review": 0.60},
+                "misinformation":   {"reject": 0.85, "review": 0.55},
+                "graphic_violence": {"reject": 0.70, "review": 0.40},
+                "self_harm":        {"reject": 0.80, "review": 0.45},
+            },
+        },
+    ]
+
+    db = SessionLocal()
+    try:
+        existing_count = db.query(models.Platform).count()
+        if existing_count > 0:
+            import logging
+            logging.getLogger("uvicorn").info(
+                "Skipping platform seed: %d platform(s) already present.", existing_count
+            )
+            return
+        for p_data in PLATFORMS:
+            db.add(models.Platform(**p_data))
+        db.commit()
+        import logging
+        logging.getLogger("uvicorn").info(
+            "Seeded %d default platform(s) (DB was empty).", len(PLATFORMS)
+        )
+    except Exception as exc:
+        db.rollback()
+        import logging
+        logging.getLogger("uvicorn").warning("Platform seed failed: %s", exc)
+    finally:
+        db.close()
 
 
 # ── Health ────────────────────────────────────────────────────────────────────
