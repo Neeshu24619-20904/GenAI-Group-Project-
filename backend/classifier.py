@@ -105,9 +105,6 @@ class LLMJSONError(RuntimeError):
         super().__init__(message)
         self.raw_response = raw_response
 
-# Keep backward-compatible alias
-GeminiJSONError = LLMJSONError
-
 
 def _strip_markdown_json(text: str) -> str:
     text = text.strip()
@@ -155,9 +152,6 @@ def _log_llm_exception(stage: str, exc: Exception) -> None:
         logger.exception("Groq JSON parsing failure during %s: %s", stage, exc)
     else:
         logger.exception("Groq request failure during %s: %s", stage, exc)
-
-# Backward-compatible alias used by existing callers
-_log_gemini_exception = _log_llm_exception
 
 
 def _category_key(key: str) -> str | None:

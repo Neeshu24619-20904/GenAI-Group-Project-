@@ -6,7 +6,6 @@ from collections import defaultdict
 from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from dotenv import load_dotenv
 
 import models
