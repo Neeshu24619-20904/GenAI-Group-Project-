@@ -3,8 +3,14 @@ import axios from "axios";
 // Single source of truth for the backend base URL.
 export const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
+// 60s timeout: Render free-tier can take 30-50s to wake from sleep,
+// then Groq adds another 5-15s. Without a timeout the request just
+// hangs until the browser eventually shows a vague "Network Error".
+const REQUEST_TIMEOUT_MS = 60_000;
+
 export const api = axios.create({
   baseURL: API_BASE,
+  timeout: REQUEST_TIMEOUT_MS,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -176,12 +182,24 @@ export const getStats = (days: number) =>
 
 export function apiErrorMessage(err: unknown): string {
   if (axios.isAxiosError(err)) {
+    // No HTTP response at all: network / CORS / timeout.
+    if (err.code === "ECONNABORTED") {
+      return `Request timed out after ${REQUEST_TIMEOUT_MS / 1000}s. The backend at ${API_BASE} may be waking up (Render free tier sleeps after 15min of inactivity — first request can take ~50s). Please try again.`;
+    }
+    if (!err.response) {
+      // Network failure with no response. This is what Axios reports as
+      // "Network Error" — could be DNS, refused, offline, CORS, or TLS.
+      return `Network error reaching ${API_BASE}. ${err.message || ""}`.trim();
+    }
     return (
       err.response?.data?.detail ||
       err.response?.data?.message ||
       err.message ||
-      "Request failed"
+      `HTTP ${err.response.status}`
     );
   }
   return err instanceof Error ? err.message : "Unexpected error";
 }
+
+// Exposed for debugging — strip the trailing slash so error messages read cleanly.
+export const apiBaseUrl = API_BASE.replace(/\/$/, "");

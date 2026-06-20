@@ -5,6 +5,7 @@ import {
   getPlatforms,
   moderate,
   apiErrorMessage,
+  apiBaseUrl,
   type Platform,
   type ModerateResponse,
 } from "@/lib/api";
@@ -49,7 +50,11 @@ function Playground() {
         setPlatforms(p);
         if (p.length && !platformId) setPlatformId(p[0].id);
       })
-      .catch((e) => toast.error(apiErrorMessage(e)));
+      .catch((e) =>
+        toast.error(
+          `Cannot reach backend at ${apiBaseUrl}. ${apiErrorMessage(e)}`,
+        ),
+      );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

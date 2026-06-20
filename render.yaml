@@ -8,3 +8,7 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
+      # sync: false means the value is set manually in the Render dashboard
+      # (Render does NOT read the local .env file). Do not paste the secret here.
+      - key: GROQ_API_KEY
+        sync: false
